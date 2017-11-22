@@ -39,9 +39,9 @@
 #if defined(PLUGINDIR)
   const int   osal_libsearchdirs = 4;
   const char *osal_libsearchpath[4] = { PLUGINDIR, "/usr/local/lib/mupen64plus",  "/usr/lib/mupen64plus", "./" };
-#else
-  const int   osal_libsearchdirs = 3;
-  const char *osal_libsearchpath[3] = { "/usr/local/lib/mupen64plus",  "/usr/lib/mupen64plus", "./" };
+#ifdef __APPLE__
+  const int   osal_libsearchdirs = 2;
+  const char *osal_libsearchpath[2] = { " ~/Library/Application Support/mupen64plus", "./" };
 #endif
 
 osal_lib_search *osal_library_search(const char *searchpath)
