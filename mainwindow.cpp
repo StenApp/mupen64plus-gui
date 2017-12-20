@@ -256,7 +256,11 @@ MainWindow::MainWindow(QWidget *parent) :
     m_title += __DATE__;
     resetTitle();
 
+#ifdef Q_OS_MACOS
+    QString ini_path = QCoreApplication::applicationDirPath().append("/Contents/Resources/mupen64plus-gui.ini");
+#else
     QString ini_path = QDir(QCoreApplication::applicationDirPath()).filePath("mupen64plus-gui.ini");
+#endif
     settings = new QSettings(ini_path, QSettings::IniFormat);
 
     if (!settings->isWritable())
@@ -298,8 +302,13 @@ MainWindow::MainWindow(QWidget *parent) :
         findRecursion("/usr/local/lib", OSAL_DEFAULT_DYNLIB_FILENAME, &files);
         if (files.size() > 0)
             settings->setValue("coreLibPath", files.at(0));
-        else
+        else{
+#ifdef Q_OS_MACOS
+            settings->setValue("coreLibPath", QDir(QCoreApplication::applicationDirPath().append("/Contents/Frameworks/")).filePath(OSAL_DEFAULT_DYNLIB_FILENAME));
+#else
             settings->setValue("coreLibPath", QDir(QCoreApplication::applicationDirPath()).filePath(OSAL_DEFAULT_DYNLIB_FILENAME));
+#endif
+        }
     }
     if (!settings->contains("pluginDirPath")) {
         QStringList files2;
@@ -311,8 +320,15 @@ MainWindow::MainWindow(QWidget *parent) :
         if (files2.size() > 0) {
             QFileInfo pluginPath(files2.at(0));
             settings->setValue("pluginDirPath", pluginPath.absolutePath());
-        } else
+        }
+        else{
+#ifdef Q_OS_MACOS
+            settings->setValue("pluginDirPath",QCoreApplication::applicationDirPath().append("/Contents/Frameworks/"));
+#else
             settings->setValue("pluginDirPath", QCoreApplication::applicationDirPath());
+#endif
+            
+        }
     }
     if (!settings->value("coreLibPath").isNull())
         qtCoreDirPath = settings->value("coreLibPath").toString();
@@ -359,7 +375,10 @@ int MainWindow::getVerbose()
 
 void MainWindow::resizeMainWindow(int Width, int Height)
 {
-    resize(Width, Height + (menuBar()->isNativeMenuBar() ? 0 : ui->menuBar->height()) + ui->statusBar->height());
+    QSize size = this->size();
+    Height += (menuBar()->isNativeMenuBar() ? 0 : ui->menuBar->height()) + ui->statusBar->height();
+    if (size.width() != Width || size.height() != Height)
+        resize(Width, Height);
 }
 
 void MainWindow::toggleFS(int force)
